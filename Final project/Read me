@@ -1,1 +1,224 @@
-Here is the final project 
+# 🎽 Badminton Play Prediction using Decision Tree Classifier
+
+This project uses a **Decision Tree Classifier** to predict whether badminton will be played based on weather conditions such as `Outlook`, `Temperature`, `Humidity`, and `Wind`. It includes data preparation, model training, evaluation, visualizations, and user-based predictions.
+
+---
+
+## 📚 Table of Contents
+
+1. [Overview](#-overview)
+2. [Libraries Used](#-libraries-used)
+3. [Dataset](#-dataset)
+4. [Preprocessing](#-preprocessing)
+5. [Model Building](#-model-building)
+6. [Evaluation Metrics](#-evaluation-metrics)
+7. [Visualizations](#-visualizations)
+8. [User Input Prediction](#-user-input-prediction)
+9. [Results](#-results)
+10. [How to Run](#-how-to-run)
+11. [Notes](#-notes)
+
+---
+
+## 🔍 Overview
+
+The goal is to use machine learning to predict whether a game of badminton will be played, given weather conditions. This is accomplished using a Decision Tree classifier from `scikit-learn`.
+
+---
+
+## 🛠️ Libraries Used
+
+```python
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, recall_score, precision_score, f1_score
+import matplotlib.pyplot as plt
+import seaborn as sns
+```
+
+---
+
+## 📁 Dataset
+
+The dataset is stored in `badminton_dataset.csv` and includes:
+
+- **Outlook** (Sunny, Overcast, Rain)
+- **Temperature** (Hot, Mild, Cool)
+- **Humidity** (High, Normal)
+- **Wind** (Weak, Strong)
+- **Play\_Badminton** (Yes, No)
+
+---
+
+## ⚙️ Preprocessing
+
+### One-hot Encoding of Categorical Variables
+
+```python
+df_encoded = pd.get_dummies(df, columns=['Outlook', 'Temperature', 'Humidity', 'Wind'])
+```
+
+This ensures all inputs are numeric for the ML model.
+
+---
+
+## 🤖 Model Building
+
+### Splitting Features and Target
+
+```python
+X = df_encoded.drop('Play_Badminton', axis=1)
+y = df_encoded['Play_Badminton'].apply(lambda x: 1 if x == 'Yes' else 0)
+```
+
+### Splitting into Training and Testing Sets
+
+```python
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+```
+
+### Training the Classifier
+
+```python
+model = DecisionTreeClassifier(random_state=42)
+model.fit(X_train, y_train)
+```
+
+### Predicting
+
+```python
+y_pred = model.predict(X_test)
+```
+
+---
+
+## 📊 Evaluation Metrics
+
+```python
+CM = confusion_matrix(y_test, y_pred)
+AS = accuracy_score(y_test, y_pred)
+RS = recall_score(y_test, y_pred)
+PS = precision_score(y_test, y_pred)
+F1 = f1_score(y_test, y_pred)
+```
+
+#### Output Example:
+
+```
+Confusion Matrix:
+[[7 0]
+ [0 4]]
+Accuracy Score: 1.00
+Recall Score: 1.00
+Precision Score: 1.00
+F1 Score: 1.00
+```
+
+---
+
+## 📈 Visualizations
+
+### Decision Tree
+
+```python
+plt.figure(figsize=(20,10))
+plot_tree(model, feature_names=X_train.columns, filled=True, rounded=True, fontsize=12)
+plt.show()
+```
+
+### Pie Chart for Target Variable
+
+```python
+play_counts = df['Play_Badminton'].value_counts()
+plt.figure(figsize=(8,6))
+plt.pie(play_counts, labels=play_counts.index, autopct='%1.1f%%', startangle=140, colors=['lightblue', 'lightgreen'])
+plt.title('Distribution of Play_Badminton')
+plt.show()
+```
+
+### Heatmap of Confusion Matrix
+
+```python
+plt.figure(figsize=(8,6))
+sns.heatmap(CM, annot=True, fmt='d', cmap='Reds', xticklabels=['Not Play', 'Play'], yticklabels=['Not Play', 'Play'])
+plt.title('Confusion Matrix Heatmap')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.show()
+```
+
+### Scatter Plot
+
+```python
+sns.relplot(x='Temperature', y='Humidity', hue='Play_Badminton', data=df)
+plt.title('Temperature vs. Humidity')
+plt.xlabel('Temperature')
+plt.ylabel('Humidity')
+plt.show()
+
+sns.relplot(x='Outlook', y='Wind', hue='Play_Badminton', data=df)
+plt.title('Outlook vs. Wind')
+plt.xlabel('Outlook')
+plt.ylabel('Wind')
+plt.show()
+```
+
+---
+
+## 🧠 User Input Prediction
+
+```python
+while True:
+    try:
+        user_outlook = input("Enter the Outlook (Sunny, Overcast, Rain): ").capitalize()
+        if user_outlook not in ["Sunny", "Overcast", "Rain"]:
+            raise ValueError("Invalid input for Outlook")
+
+        user_temperature = input("Enter the Temperature (Hot, Mild, Cool): ").capitalize()
+        if user_temperature not in ["Hot", "Mild", "Cool"]:
+            raise ValueError("Invalid input for Temperature")
+
+        user_humidity = input("Enter the Humidity (High, Normal): ").capitalize()
+        if user_humidity not in ["High", "Normal"]:
+            raise ValueError("Invalid input for Humidity")
+
+        user_wind = input("Enter the Wind (Weak, Strong): ").capitalize()
+        if user_wind not in ["Weak", "Strong"]:
+            raise ValueError("Invalid input for Wind")
+
+        break
+    except ValueError:
+        print('Wrong input. Try again.')
+
+user_input = pd.DataFrame({
+    'Outlook': [user_outlook],
+    'Temperature': [user_temperature],
+    'Humidity': [user_humidity],
+    'Wind': [user_wind]
+})
+
+user_input_encoded = pd.get_dummies(user_input)
+user_input_encoded = user_input_encoded.reindex(columns=X_train.columns, fill_value=0)
+
+user_prediction = model.predict(user_input_encoded)
+print("Prediction: Badminton will be played!" if user_prediction[0] == 1 else "Prediction: Badminton will NOT be played.")
+```
+
+---
+
+## ▶️ How to Run
+
+1. Clone this repository.
+2. Make sure `badminton_dataset.csv` is in your working directory.
+3. Install required libraries:
+
+```bash
+pip install pandas numpy scikit-learn matplotlib seaborn
+```
+
+4. Run the Python script or Jupyter Notebook.
+5. Follow on-screen instructions for user prediction.
+
+---
